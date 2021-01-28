@@ -1,3 +1,4 @@
+package main;
 
 
 import org.eclipse.jetty.websocket.api.Session;
@@ -6,6 +7,8 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
+
+import answers.Service;
 
 @WebSocket
 public class GameWebSocketHandler {
@@ -32,13 +35,16 @@ public class GameWebSocketHandler {
     	JSONObject json = new JSONObject(message);
     	String status = json.get("type").toString();
     	int statusInt = Integer.parseInt(status);
-    	if (statusInt == 0) {
-    		String msg = json.get("message").toString();
-    		Game.broadcastChatMessage("Server", Game.userUsernameMap.get(user) + " " +msg);
-    	}
-    	else {
-    		String msg = json.get("message").toString();
-    		Game.broadcastChatMessage(Game.userUsernameMap.get(user), msg);
-    	}
+    	Service service = Service.getInstance(statusInt);
+    	service.answer(user, json);
+    	
+//    	if (statusInt == 0) {
+//    		String msg = json.get("message").toString();
+//    		Game.broadcastChatMessage("Server", Game.userUsernameMap.get(user) + " " +msg);
+//    	}
+//    	else {
+//    		String msg = json.get("message").toString();
+//    		Game.broadcastChatMessage(Game.userUsernameMap.get(user), msg);
+//    	}
     }
 }

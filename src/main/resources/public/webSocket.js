@@ -18,22 +18,22 @@ id("message").addEventListener("keypress", function (e) {
 //Send a message if it's not empty, then clear the input field
 function sendMessage(message) {
     if (message !== "") {
-    	data = {};
-		data["type"] = 1;
-		data["message"] = message;
-		data = JSON.stringify(data)
-        webSocket.send(data);
+    	json = {};
+		json["type"] = 1;
+		json["message"] = message;
+		jjson = JSON.stringify(json)
+        webSocket.send(jjson);
         id("message").value = "";
     }
 }
 
 //Update the chat-panel, and the list of connected users
 function updateChat(msg) {
-    var data = JSON.parse(msg.data);
-    $('#chat').append(data.userMessage).scrollTop($("#chat")[0].scrollHeight);
+    var json = JSON.parse(msg.data);
+    $('#chat').append(json.userMessage).scrollTop($("#chat")[0].scrollHeight);
     //insert("chat", data.userMessage);
     id("userlist").innerHTML = "";
-    data.userlist.forEach(function (user) {
+    json.userlist.forEach(function (user) {
         insert("userlist", "<li>" + user + "</li>");
     });
 }
@@ -57,7 +57,7 @@ function targetBoard(column, line){
 	if (column !== "" && line != ""){
 		msg = " a tire sur : "+ column + ", "+ line + "     ? touche, coule, non touche ?";
 		data = {};
-		data["type"] = 0;
+		data["type"] = 2;
 		data["message"] = msg;
 		data = JSON.stringify(data)
 		webSocket.send(data);

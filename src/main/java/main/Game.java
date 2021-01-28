@@ -1,3 +1,4 @@
+package main;
 
 
 import java.io.File;
@@ -16,9 +17,13 @@ import static j2html.TagCreator.*;
 
 public class Game {
 	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,2);
-	static Map<Session, String> userUsernameMap = new ConcurrentHashMap<>();
+	public static Map<Session, String> userUsernameMap = new ConcurrentHashMap<>();
 	static int nextUserNumber = 1; //Used for creating the next username
 	
+	
+	public static Map<Session, String>  getUsernameMap() {
+		return userUsernameMap;
+	}
 	
 	//Sends a message from one user to all users, along with a list of current usernames
     /**
