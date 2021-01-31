@@ -1,6 +1,12 @@
 package main;
 
 
+import static spark.Spark.get;
+import static spark.Spark.staticFileLocation;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
@@ -9,25 +15,38 @@ import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
 
 import answers.Service;
+import spark.ModelAndView;
+import spark.template.velocity.VelocityTemplateEngine;
 
 @WebSocket
 public class GameWebSocketHandler {
-	private String user; 
+	private Player player; 
 	private String column;
 	private String line; 
 
+	
+	 
     @OnWebSocketConnect
-    public void onConnect(Session user) throws Exception {
-    	String username = "User" + Game.nextUserNumber++;
-        Game.userUsernameMap.put(user, username);
-        Game.broadcastChatMessage("Server", (username + " joined the chat"));
+    public void onConnect(Session session) throws Exception {
+    	System.out.println("enter onConnect");
+    	String username = Game.waitingListNames.get(1);
+    	Game.waitingListNames.remove(1);
+    	Player player = new Player(username);
+        Game.userUsernameMap.put(session, player);
+        
+        //allow to put message from the server, hypothetical player 
+        Player server = new Player("Server");
+        Game.broadcastChatMessage(server, (username + " joined the game"));
     }
 
     @OnWebSocketClose
-    public void onClose(Session user, int statusCode, String reason) {
-        String username = Game.userUsernameMap.get(user);
-        Game.userUsernameMap.remove(user);
-        Game.broadcastChatMessage("Server", "" + username + " left the game");
+    public void onClose(Session session, int statusCode, String reason) {
+        String username = Game.userUsernameMap.get(player).getName();
+        Game.userUsernameMap.remove(session);
+        
+      //allow to put message from the server, hypothetical player 
+        Player server = new Player("Server");
+        Game.broadcastChatMessage(server, (username + " left the game"));
     }
 
     @OnWebSocketMessage
@@ -37,14 +56,5 @@ public class GameWebSocketHandler {
     	int statusInt = Integer.parseInt(status);
     	Service service = Service.getInstance(statusInt);
     	service.answer(user, json);
-    	
-//    	if (statusInt == 0) {
-//    		String msg = json.get("message").toString();
-//    		Game.broadcastChatMessage("Server", Game.userUsernameMap.get(user) + " " +msg);
-//    	}
-//    	else {
-//    		String msg = json.get("message").toString();
-//    		Game.broadcastChatMessage(Game.userUsernameMap.get(user), msg);
-//    	}
     }
 }

@@ -8,10 +8,9 @@ import main.Game;
 public class ChatService implements Service {
 
 	@Override
-	public void answer(Session user, JSONObject jsonMessage) {
-		System.out.println("enter");
+	public void answer(Session session, JSONObject jsonMessage) {
 		String msg = jsonMessage.get("message").toString();
-		Game.broadcastChatMessage(Game.userUsernameMap.get(user), msg);
+		Game.broadcastChatMessage(Game.userUsernameMap.get(session), msg);
 	}
 
 }

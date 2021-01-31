@@ -18,6 +18,9 @@ public interface Service {
 		else if (status == CHAT_CODE) {
 		    return new ChatService();
 		}
+		else if (status == GAME_CODE) {
+			return new GameService();
+		}
 		else {
 			throw new IllegalStateException();
 		}

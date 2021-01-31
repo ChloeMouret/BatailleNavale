@@ -25,6 +25,11 @@ li {
     word-wrap: break-word;
 }
 
+a:focus{
+    outline: none;   
+    color : red;
+}
+
 #chat article:last-of-type {
     background:#76d7c4;
     border-left-color: #117864;
