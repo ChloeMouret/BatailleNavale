@@ -45,3 +45,64 @@ a:focus{
     50%  { transform: scale(1.05); }
     to   { transform: none;        }
 }
+
+#grid{
+	display: table;
+  	margin: 0 auto;
+}
+
+.cell{
+	height : 50px;
+	width : 50px;
+	display : inline-block;
+	text-align : center;
+	border:1px solid black;
+	background-color : grey; 
+}
+
+.idCellHori{
+	height : 30px;
+	width : 50px;
+	background-color : #ebf5fb;
+	display : inline-block;
+	text-align : center;
+	border:1px solid black;
+}
+
+.idCellVerti{
+	height : 50px;
+	width : 30px;
+	background-color : #ebf5fb;
+	text-align : center;
+	border:1px solid black;
+}
+
+.row{ 
+	height : 50px;
+  	margin-left :0px; 
+  	margin-right: 0px;
+  	
+}
+
+.h5{
+	text-align : center; 
+}
+
+.b{
+	color : red; 
+}
+
+#chooseBoat{
+	margin-left : 5px; 
+	margin-right: 5px; 
+}
+
+#chooseDirection .p {
+	padding : 0px;
+	margin : 0px; 
+}
+
+
+
+
+

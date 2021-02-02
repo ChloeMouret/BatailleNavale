@@ -52,9 +52,9 @@ function id(id) {
 }
 
 //send message userX has fired
-id("validateButton").addEventListener("click", function() {
-	targetBoard(id("columnInput").value, id("lineInput").value); 
-});
+//id("validateButton").addEventListener("click", function() {
+//	targetBoard(id("columnInput").value, id("lineInput").value); 
+//});
 
 
 function targetBoard(column, line){
@@ -74,17 +74,40 @@ function targetBoard(column, line){
 //	console.log("ok validateName")
 //	newPlayer(id("playerName"));
 //})
-//
-//function newPlayer(name){
-//	if (name !== ""){
-//		msg = name;
-//		data = {};
-//		data["type"] = 3;
-//		data["message"] = msg;
-//		data = JSON.stringify(data)
-//		webSocket.send(data);
-//	}
-//}
+
+function newPlayer(name){
+	if (name !== ""){
+		msg = name;
+		data = {};
+		data["type"] = 3;
+		data["message"] = msg;
+		data = JSON.stringify(data)
+		webSocket.send(data);
+	}
+}
+
+id("playerReady").addEventListener("click", function(){
+	createBoard(5,5);
+})
+
+function createBoard(nbColumn, nbLine){
+	//2 first lines in order to not multiply the grid
+	id("node").removeChild(id("grid"))
+	insert("node", "<div id='grid' class='grid' style='width: auto'></div>")
+	for (var i=0; i<nbLine; i++){
+		insert("grid", "<div style='display:flex; flex-direction : horizontal'>" +
+				"<div class=idCellVerti' style='width:30px; background-color : #ebf5fb; text-align : center; border:1px solid black" +
+				"'>"+(nbLine-i)+"</div><div id = 'row" +i+"' class='row' style='width :"+(50*nbColumn)+"px'></div></div>")
+		for (var j=0; j<nbColumn; j++){
+			insert("row"+i+"", "<div id = 'cell" +i+j+"' class='cell'></div>")
+		}
+	}
+	//insert first line which is numeros of columns
+	insert("grid", "<div id = 'rowIni' style='height : 30px; width :"+(50*nbColumn)+"px; margin-left : 30px'></div>")
+	for (var j=1; j<nbColumn+1; j++){
+		insert("rowIni", "<div class='idCellHori'> "+ (nbColumn-j+1) +"</div>")
+	}
+}
 
 
 

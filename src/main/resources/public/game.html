@@ -32,8 +32,12 @@
 				</div>
 			</div>
 			<div id="right-box" style="width:80%">
-				<div id="title">
+				<div id="title" >
 					<h2 style="text-align : center"> Touché Encoulé </h2>
+					<div style="position : absolute; top : 5px; right : 5px">
+						<button id="playerReady" type="button" class="btn btn-success" 
+								data-toggle="modal" data-target="#modalPlaceBoats"> Readyyyy </button>
+					</div>
 				</div>
 				<div style="margin-top : 50px">
 					<p style="text-align : center ; font-size : 23px"> 
@@ -57,6 +61,56 @@
 				</div>
 			</div>
 		</div>
+		
+		<!-- Modal Create Game -->
+	    <div class="modal" id="modalPlaceBoats">
+	        <div class="modal-dialog">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                	<h4 class="modal-title"> Placez vos bateaux </h4>
+	                	<button type="button" class="close" data-dismiss="modal">&times;</button>
+	                </div>
+	                <div id="choices">
+	                	<h5 style="text-align:center"><i> Vous avez 2 bateaux a placer </i></h5>
+	                	<div id="chooseBoat">
+	                		<p> Votre bateau n°1 a une longueur de <b style="color:red">2</b> cases </p>
+	                		<div id="chooseDirection">
+		                		<p style="margin: 0px; padding : 0px"> Choisissez l'orientation du bateau : </p>
+		                		<div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px">
+		                			<input id="verticalCheckbox" type="checkbox" name="verticalCheckbox" style="width:auto">
+		                			<label for="verticalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Vertical </label> 
+	                			</div>
+	                			<div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px">
+		                			<input id="horizontalCheckbox" type="checkbox" name="horizontalCheckbox" style="width:auto">
+		                			<label for="horizontalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Horizontal </label> 
+	                			</div>
+               				</div>
+               				<div id="chooseFirstCase">
+               					<p style="margin: 0px; padding : 0px"> Choisissez l'emplacement de la premiere case du bateau : </p>
+               					<div id="columnChoice" style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px">
+               						<label style="font-size:0.85rem"> Colonne : </label>
+               						<input style="width: 40px; margin-left : 5px; font-size : 0.8rem">
+               					</div>
+               					<div id="lineChoice" style="display : flex; flex-direction : horizontal; height:25px; margin-left : 50px">
+               						<label style="font-size:0.85rem"> Ligne   : </label>
+               						<input style="width: 40px; margin-left : 23px; font-size : 0.8rem">
+               					</div>
+               				</div>
+	                	</div>
+	                </div>
+	                <div id="node" style="margin-bottom : 10px; margin-top:10px">
+		                <div id="grid" class="grid" style="width: auto">
+							<!-- Built in JS-->
+						</div> 
+					</div>
+					<div id="finalizeChoice" style="display: flex; justify-content : right">
+	                	<button type="button" class="btn btn-outline-dark" style="margin-bottom : 5px"> Suivant </button>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+		
+		
 		<script src="webSocket.js"></script>
 	</body>
 </html>
