@@ -28,14 +28,15 @@ public class GameWebSocketHandler {
 	 
     @OnWebSocketConnect
     public void onConnect(Session session) throws Exception {
-    	System.out.println("enter onConnect");
     	String username = Game.waitingListNames.get(1);
     	Game.waitingListNames.remove(1);
-    	Player player = new Player(username);
+    	Player player = new Player(username, Game.playersMap.size());
+    	System.out.println(player.getName()+" id is : "+ player.getId());
         Game.userUsernameMap.put(session, player);
+        Game.playersMap.put(player.getId(), player);
         
         //allow to put message from the server, hypothetical player 
-        Player server = new Player("Server");
+        Player server = new Player("Server", 0);
         Game.broadcastChatMessage(server, (username + " joined the game"));
     }
 
@@ -45,7 +46,7 @@ public class GameWebSocketHandler {
         Game.userUsernameMap.remove(session);
         
       //allow to put message from the server, hypothetical player 
-        Player server = new Player("Server");
+        Player server = new Player("Server", 0);
         Game.broadcastChatMessage(server, (username + " left the game"));
     }
 

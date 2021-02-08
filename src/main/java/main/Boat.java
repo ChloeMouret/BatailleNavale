@@ -7,7 +7,6 @@ public class Boat {
 	private int boatSize;
 	private int direction;  //0 = vertical, 1=horizontal 
 	private int status; //0 = no problem, 1 = touché , 2 = coulé
-	private static int idCount = 0;
 	
 	/**
 	 * @param firstCase
@@ -15,9 +14,8 @@ public class Boat {
 	 * @param direction
 	 * create boat, status = 0 at the beginning of the game because boat intact at the beginning
 	 */
-	public Boat(Key firstCase, int boatSize, int direction) {
-		this.id = idCount;
-		idCount++;
+	public Boat(Key firstCase, int boatSize, int direction, int id) {
+		this.id = id;
 		this.firstCase = firstCase; 
 		this.boatSize = boatSize;
 		this.direction = direction; 

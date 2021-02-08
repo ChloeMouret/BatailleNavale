@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.client.api.Response;
@@ -37,12 +38,30 @@ public class Game {
 	public static Map<Integer, String> waitingListNames = new ConcurrentHashMap<>();
 	static int nextUserNumber = 1; //Used for creating the next username
 	public static Integer GameIdentity;
+	public static Map<Integer, Player> playersMap = new ConcurrentHashMap<>();
 	
 	
 	public static Map<Session, Player>  getUsernameMap() {
 		return userUsernameMap;
 	}
 	
+	//TODO : coté js : faire pour qu'on ne puisse entrer que des chiffres
+	//TODO : connecter les tailles du back au js 
+	
+	//TODO : gerer les tailles de bateaux automatiquement 
+	public static void playerBoat(Player player, Integer column, Integer line, Integer direction) {
+		Key boatKey = new Key(column, line); 
+		Boat boat = new Boat(boatKey, 2, direction, player.getBoard().getListBoat().size()); 
+		player.getBoard().addBoat(boat);
+		System.out.println(player.getBoard().toString());
+	}
+	
+	
+	public static Player firstPlayer() {
+		Random r1 = new Random();
+		int idFirstPlayer = r1.nextInt(2);
+		return playersMap.get(idFirstPlayer);
+	}
 	
 	//Sends a message from one user to all users, along with a list of current usernames
     /**
@@ -54,6 +73,7 @@ public class Game {
         userUsernameMap.keySet().stream().filter(Session::isOpen).forEach(session -> {
             try {
             	JSONObject msg = new JSONObject()
+            			.put("type", "message")
                         .put("userMessage", createHtmlMessageFromSenderChat(sender, message))
                         .put("userlist", userUsernameMap.values());
                 session.getRemote().sendString(String.valueOf(msg));

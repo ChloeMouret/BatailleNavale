@@ -6,17 +6,16 @@ import java.util.Scanner;
 public class Player {
 	private String name; 
 	private int id;
-	private int idCount = 0; 
+	private int idCount = 0;
 	private Board board;
 	
 	/**
 	 * @param n
 	 * Player constructor
 	 */
-	public Player(String n) {
+	public Player(String n, Integer id) {
 		this.name = n;
-		this.id = idCount;
-		idCount ++;
+		this.id = id;
 		this.board = new Board();
 	}
 	
@@ -68,7 +67,8 @@ public class Player {
 			System.out.println("Entrez la position en Y de votre bateau n°" + (i+1) + ": ");
 			Scanner scannerY = new Scanner(System.in);
 			int positionY = scannerY.nextInt();
-			this.getBoard().addBoat(new Boat(new Key(positionX, positionY), Game.SIZE_OF_BOATS.get(i), direction));
+			int sizeListBoat = this.getBoard().getListBoat().size();
+			this.getBoard().addBoat(new Boat(new Key(positionX, positionY), Game.SIZE_OF_BOATS.get(i), direction, sizeListBoat));
 			System.out.println("Voici l'emplacement de vos bateaux : ");
 			System.out.println(this.getBoard());
 			System.out.println();

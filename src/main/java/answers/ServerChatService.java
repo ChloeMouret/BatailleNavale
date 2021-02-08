@@ -12,7 +12,7 @@ public class ServerChatService implements Service{
 		String msg = jsonMessage.get("message").toString();
 		
 		 //allow to put message from the server, hypothetical player 
-        Player server = new Player("Server");
+        Player server = new Player("Server", 0);
 		Game.broadcastChatMessage(server, Game.getUsernameMap().get(user) + " " +msg);
 	}
 }

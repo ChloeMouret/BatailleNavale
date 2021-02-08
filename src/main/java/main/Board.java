@@ -353,7 +353,7 @@ public class Board {
 		System.out.println();
 		
 		//Test addBoat
-		Boat boatTest = new Boat(new Key(4,0), 2, 0);
+		Boat boatTest = new Boat(new Key(4,0), 2, 0, 0);
 		board.addBoat(boatTest);
 		int boatId = boatTest.getId();
 		System.out.println(board);
@@ -439,7 +439,7 @@ public class Board {
 		
 		//Test stillABoatOnBoard
 		System.out.println(board.stillABoatOnBoard());
-		board.addBoat(new Boat(new Key(0,3), 1, 1));
+		board.addBoat(new Boat(new Key(0,3), 1, 1, 10));
 		board.listBoat.get(0).setStatus(2);
 		System.out.println(board.stillABoatOnBoard());
 		board.listBoat.get(1).setStatus(2);
