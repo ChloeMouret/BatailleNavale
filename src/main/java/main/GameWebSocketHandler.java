@@ -32,18 +32,26 @@ public class GameWebSocketHandler {
     	Game.waitingListNames.remove(1);
     	Player player = new Player(username, Game.playersMap.size());
     	System.out.println(player.getName()+" id is : "+ player.getId());
-        Game.userUsernameMap.put(session, player);
+        Game.sessionPlayerMap.put(session, player);
         Game.playersMap.put(player.getId(), player);
+        
+        //transmit info from back to JS
+        Game.transmitInfoToJS(session);
         
         //allow to put message from the server, hypothetical player 
         Player server = new Player("Server", 0);
         Game.broadcastChatMessage(server, (username + " joined the game"));
+        
+        //if 2 players are connected it handles which one begins
+        if (Game.playersMap.size()==2) {
+        	Game.firstPlayer();
+        }
     }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        String username = Game.userUsernameMap.get(player).getName();
-        Game.userUsernameMap.remove(session);
+        String username = Game.sessionPlayerMap.get(player).getName();
+        Game.sessionPlayerMap.remove(session);
         
       //allow to put message from the server, hypothetical player 
         Player server = new Player("Server", 0);

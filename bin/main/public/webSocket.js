@@ -6,15 +6,61 @@ webSocket.onmessage = function (msg) {
 	if (json.type =="game"){
 		updateTargetBoard(msg);
 	}
-	else if (json.type="message"){
-		console.log("message");
+	else if (json.type=="message"){
 		updateChat(msg); 
+	}
+	else if (json.type=="turn"){
+		console.log("firstPlayer");
+		id("validateButton").style.display = "block";
+	}
+	else if (json.type == "not-turn"){
+		console.log("not my turn");
+		id("validateButton").style.display = "none";
+	}
+	else if (json.type=="init"){
+		console.log("init");
+		$("#modalPlaceBoats").modal('show');
+		createOnce(json); 
+	}
+	else if (json.type=="boats-ok"){
+		waitingOtherPlayer(msg);
 	}
 };
 
 webSocket.onclose = function () { alert("WebSocket connection closed test") };
 
-webSocket.onopen = function () { console.log("Websocket connected !"); };
+webSocket.onopen = function () { console.log("websocket connected")};
+
+var boats = {};
+var boatsPlaced = 0;
+
+var createOnce = function(json){
+	var executed = false;
+	if (!executed){
+		executed = true;
+		createBoard(json.width, json.height, "grid", "init");
+		createBoard(json.width, json.height, "targetBoard", "cell");
+		createBoard(json.width, json.height, "yourBoard", "yourCell");
+		id("header1").innerHTML = "<i> Vous avez "+ json.boats.length +" bateaux a placer </i>";
+		id("p1").innerHTML = "Votre bateau n°1 a une longueur de <b style='color:red'>"+json.boats[0]+"</b> cases";
+		boats = json.boats;
+	}
+	//console.log("Shoud be 4 : "+boats[1]);
+}
+
+function waitingOtherPlayer(msg) {
+	var json = JSON.parse(msg.data);
+	if (json.otherPlayerReady == "no"){
+		$("#modalPlaceBoats").modal('hide');
+		console.log("other player not ready");
+		$("#modalWaiting").modal('show');
+	}
+	else {
+		console.log("both ready");
+		$("#modalPlaceBoats").modal('hide');
+		$("#modalWaiting").modal('hide');
+	}
+}
 
 //Send message if "Send" is clicked
 id("send").addEventListener("click", function () {
@@ -57,10 +103,8 @@ function updateChat(msg) {
     $('#chat').append(json.userMessage).scrollTop($("#chat")[0].scrollHeight);
     //insert("chat", data.userMessage);
     id("userlist").innerHTML = "";
-    console.log(json.userlist["0"]["name"]);
     json.userlist.forEach(function (user) {
         insert("userlist", "<li>" + user["name"] + "</li>");
-        console.log("Apres Userlist");
     });
 }
 
@@ -76,9 +120,17 @@ function id(id) {
 
 //send message userX has fired
 id("validateButton").addEventListener("click", function() {
-	//id("cell-0-0").style.backgroundColor = "green";
 	targetBoard(id("columnInput").value, id("lineInput").value); 
+	nextPlayer();
 });
+
+
+function nextPlayer(){
+	data = {};
+	data["type"] = 4;
+	data = JSON.stringify(data)
+	webSocket.send(data);
+}
 
 
 function targetBoard(column, line){
@@ -106,12 +158,12 @@ function newPlayer(name){
 	}
 }
 
-id("playerReady").addEventListener("click", function(){
-	createBoard(5,5, "grid");
-})
+//id("playerReady").addEventListener("click", function(){
+//	createBoard(5,5, "grid");
+//})
 
 
-function createBoard(nbColumn, nbLine, div){
+function createBoard(nbColumn, nbLine, div, id){
 	//2 first lines in order to not multiply the grid
 	//id("node").removeChild(id(div))
 	//insert("node", "<div id='"+div+"' class='grid' style='width: auto'></div>")
@@ -120,7 +172,7 @@ function createBoard(nbColumn, nbLine, div){
 				"<div class=idCellVerti' style='width:30px; background-color : #ebf5fb; text-align : center; border:1px solid black" +
 				"'>"+(nbLine-i-1)+"</div><div id = 'row" +(nbLine-i-1)+"' class='row' style='width :"+(50*nbColumn)+"px'></div></div>")
 		for (var j=0; j<nbColumn; j++){
-			insert("row"+(nbLine-i-1)+"", "<div id = 'cell-"+(nbLine-i-1)+"-"+(nbColumn-j-1)+"' class='cell'></div>")
+			insert("row"+(nbLine-i-1)+"", "<div id = '"+id+"-"+(nbLine-i-1)+"-"+(nbColumn-j-1)+"' class='cell'></div>")
 		}
 	}
 	//insert first line which is numeros of columns
@@ -137,10 +189,35 @@ $('input[type="checkbox"]').on('change', function() {
 	});
 
 id("next").addEventListener("click", function(){
-	var column = id("columnChoiceInput").value; 
-	var line = id("lineChoiceInput").value;
+	var column = parseInt(id("columnChoiceInput").value); 
+	var line = parseInt(id("lineChoiceInput").value);
 	choose1BoatPosition(column, line); 
+	var direction; 
+	var size = boats[boatsPlaced];
+	boatsPlaced ++;
+	if (id("verticalCheckbox").checked){
+		direction = 0; 
+	}
+	else {
+		direction = 1; 
+	}
+	updatePlaceBoard(column, line, direction, size);
 })
+
+function updatePlaceBoard(column, line, direction, size){
+	//vertical
+	if (direction == 0){
+		for (var i=0; i<size; i++){
+			id("yourCell-"+(line+i)+"-"+column+"").style.backgroundColor = 'green';
+		}
+	}
+	//horizontal
+	else {
+		for (var j=0; j<size; j++){
+			id("yourCell-"+line+"-"+(column+j)+"").style.backgroundColor = 'green';
+		}
+	}
+}
 
 //0 = Vertical, 1=Horizontal
 function choose1BoatPosition(column, line){

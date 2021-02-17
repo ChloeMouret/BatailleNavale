@@ -9,6 +9,7 @@ public interface Service {
 	public static Integer CHAT_CODE = 1;
 	public static Integer CHOOSE_BOAT_CODE = 2;
 	public static Integer GAME_CODE = 3; 
+	public static Integer NEXT_PLAYER_CODE = 4; 
 	
 	public void answer(Session user, JSONObject jsonMessage);
 	
@@ -24,6 +25,9 @@ public interface Service {
 		}
 		else if (status == GAME_CODE) {
 			return new GameService();
+		}
+		else if (status == NEXT_PLAYER_CODE) {
+			return new NextPlayerService();
 		}
 		else {
 			throw new IllegalStateException();

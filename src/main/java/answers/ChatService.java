@@ -10,7 +10,7 @@ public class ChatService implements Service {
 	@Override
 	public void answer(Session session, JSONObject jsonMessage) {
 		String msg = jsonMessage.get("message").toString();
-		Game.broadcastChatMessage(Game.userUsernameMap.get(session), msg);
+		Game.broadcastChatMessage(Game.sessionPlayerMap.get(session), msg);
 	}
 
 }

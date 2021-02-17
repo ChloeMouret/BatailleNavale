@@ -21,6 +21,8 @@ import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.websocket.api.Session;
 import org.json.JSONObject;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 
 import spark.ModelAndView;
@@ -33,34 +35,100 @@ import static spark.Spark.*;
 import static j2html.TagCreator.*;
 
 public class Game {
-	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,2);
-	public static Map<Session, Player> userUsernameMap = new ConcurrentHashMap<>();
+	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,4);
+	public static BiMap<Session, Player> sessionPlayerMap = HashBiMap.create();
 	public static Map<Integer, String> waitingListNames = new ConcurrentHashMap<>();
 	static int nextUserNumber = 1; //Used for creating the next username
 	public static Integer GameIdentity;
-	public static Map<Integer, Player> playersMap = new ConcurrentHashMap<>();
+	public static Map<Integer, Player> playersMap = new ConcurrentHashMap<>(); 
 	
+	public Game() {
+		this.GameIdentity = generateId();
+	}
 	
 	public static Map<Session, Player>  getUsernameMap() {
-		return userUsernameMap;
+		return sessionPlayerMap;
 	}
 	
 	//TODO : coté js : faire pour qu'on ne puisse entrer que des chiffres
 	//TODO : connecter les tailles du back au js 
-	
 	//TODO : gerer les tailles de bateaux automatiquement 
+	
+	public static void transmitInfoToJS(Session session) {
+		System.out.println("in transmit info to JS");
+		try {
+			JSONObject init = new JSONObject()
+					.put("type", "init")
+					.put("width", Board.BOARD_W_SIZE)
+					.put("height", Board.BOARD_H_SIZE)
+					.put("boats", SIZE_OF_BOATS);
+			session.getRemote().sendString(String.valueOf(init));
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+	
 	public static void playerBoat(Player player, Integer column, Integer line, Integer direction) {
 		Key boatKey = new Key(column, line); 
 		Boat boat = new Boat(boatKey, 2, direction, player.getBoard().getListBoat().size()); 
 		player.getBoard().addBoat(boat);
+		Integer count = player.getBoard().getListBoat().size();
+		Session session = sessionPlayerMap.inverse().get(player);
+		Player otherPlayer; 
+		if (player.getId() == 0) {
+			otherPlayer = playersMap.get(1);
+		}
+		else {
+			otherPlayer = playersMap.get(0);
+		}
+		Session otherSession = sessionPlayerMap.inverse().get(otherPlayer);
+		if (count == SIZE_OF_BOATS.size()) {
+			try {
+				if (sessionPlayerMap.size() == 1) {
+					JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "no");
+					session.getRemote().sendString(String.valueOf(socketMessage));
+				}
+				else if (sessionPlayerMap.size() == 2){
+					if (otherPlayer.getBoard().getListBoat().size() == SIZE_OF_BOATS.size()) {
+						JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "yes");
+						session.getRemote().sendString(String.valueOf(socketMessage));
+						otherSession.getRemote().sendString(String.valueOf(socketMessage));
+					}
+					else {
+						JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "no");
+						session.getRemote().sendString(String.valueOf(socketMessage));
+					}
+				}
+				else throw new Exception("Number of players not good");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		System.out.println(player.getBoard().toString());
 	}
 	
-	
-	public static Player firstPlayer() {
+	public static void firstPlayer() {
 		Random r1 = new Random();
 		int idFirstPlayer = r1.nextInt(2);
-		return playersMap.get(idFirstPlayer);
+		System.out.println("firstPlayer id is : "+idFirstPlayer);
+		Session session = sessionPlayerMap.inverse().get(playersMap.get(idFirstPlayer));
+		try {
+			JSONObject socketMessage = new JSONObject().put("type", "turn");
+			session.getRemote().sendString(String.valueOf(socketMessage));
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+	
+	public static void nextPlayer(Session oldSession, Session newSession) {
+		try {
+			JSONObject socketMessageNextPlayer = new JSONObject().put("type", "turn");
+			JSONObject socketMessageAncientPlayer = new JSONObject().put("type", "not-turn");
+			newSession.getRemote().sendString(String.valueOf(socketMessageNextPlayer));
+			oldSession.getRemote().sendString(String.valueOf(socketMessageAncientPlayer));
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 	
 	//Sends a message from one user to all users, along with a list of current usernames
@@ -70,18 +138,18 @@ public class Game {
      * broadcast message of sender in chat
      */
     public static void broadcastChatMessage(Player sender, String message) {
-        userUsernameMap.keySet().stream().filter(Session::isOpen).forEach(session -> {
+        sessionPlayerMap.keySet().stream().filter(Session::isOpen).forEach(session -> {
             try {
             	JSONObject msg = new JSONObject()
             			.put("type", "message")
                         .put("userMessage", createHtmlMessageFromSenderChat(sender, message))
-                        .put("userlist", userUsernameMap.values());
+                        .put("userlist", sessionPlayerMap.values())
+                        .put("boat", SIZE_OF_BOATS);
                 session.getRemote().sendString(String.valueOf(msg));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        );
+        });
     }
     
   //Builds a HTML element with a sender-name, a message
@@ -93,7 +161,7 @@ public class Game {
                 p(message)
         ).render();
     }
-   
+    
     public static String render(Map<String, Object> model, String templatePath) {
         return new VelocityTemplateEngine().render(new ModelAndView(model, templatePath));
     }
