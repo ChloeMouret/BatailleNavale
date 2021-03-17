@@ -173,6 +173,7 @@ function createBoard(nbColumn, nbLine, div, id){
 	//2 first lines in order to not multiply the grid
 	//id("node").removeChild(id(div))
 	//insert("node", "<div id='"+div+"' class='grid' style='width: auto'></div>")
+	console.log("in create Board");
 	for (var i=0; i<nbLine; i++){
 		insert(div, "<div style='display:flex; flex-direction : horizontal; width :"+(30+50*nbColumn)+"px'>" +
 				"<div class=idCellVerti' style='width:30px; background-color : #ebf5fb; text-align : center; border:1px solid black" +
@@ -196,7 +197,6 @@ $('input[type="checkbox"]').on('change', function() {
 
 //place boats at the beginning
 id("next").addEventListener("click", function(){
-	$.notify("Alert!");
 	var column = parseInt(id("columnChoiceInput").value); 
 	var line = parseInt(id("lineChoiceInput").value);
 	choose1BoatPosition(column, line); 
@@ -210,8 +210,7 @@ id("next").addEventListener("click", function(){
 		direction = 1; 
 	}
 	updatePlaceBoard(column, line, direction, size);
-	console.log(boatsPlaced);
-	console.log(boats.length - 1);
+	console.log("next event");
 	
 	if (boatsPlaced != (boats.length)){
 		id("p1").innerHTML = "Votre bateau n°"+ (boatsPlaced + 1) +" a une longueur de <b style='color:red'>"+boats[boatsPlaced]+"</b> cases";
@@ -251,6 +250,7 @@ function choose1BoatPosition(column, line){
 		data["line"]=line; 
 		data["direction"]=direction; 
 		data = JSON.stringify(data)
+		console.log("choose boats")
 		webSocket.send(data);
 		id("columnInput").value = ""; 
 		id("lineInput").value = "";
