@@ -20,9 +20,7 @@ import spark.template.velocity.VelocityTemplateEngine;
 
 @WebSocket
 public class GameWebSocketHandler {
-	private Player player; 
-	private String column;
-	private String line; 
+	private Player player;
 
 	
 	 

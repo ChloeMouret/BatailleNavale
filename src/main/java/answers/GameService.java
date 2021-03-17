@@ -36,12 +36,13 @@ public class GameService implements Service{
 			status = boatTouched.getStatus();
 			if (status == 2) {
 				message = message + "Coulé ";
+				if (! player2.getBoard().stillABoatOnBoard()) {
+					Game.endOfGame(player1, player2);
+				}
 			}
-			//htmlChange = "id('cell-"+line+"-"+column+"').style.backgroundColor = 'green';";
 		}
 		else {
 			message = message + "\n Raté ";
-			//htmlChange = "id('cell-"+line+"-"+column+"').style.backgroundColor = 'red';";
 		}
 		Player server = new Player("Server", 0);
 		Game.broadcastChatMessage(server, message);

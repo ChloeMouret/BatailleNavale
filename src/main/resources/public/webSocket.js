@@ -25,6 +25,12 @@ webSocket.onmessage = function (msg) {
 	else if (json.type=="boats-ok"){
 		waitingOtherPlayer(msg);
 	}
+	else if (json.type=="winner"){
+		$("#modalWinner").modal('show');
+	}
+	else if (json.type=="loser"){
+		$("#modalLoser").modal('show');
+	}
 };
 
 webSocket.onclose = function () { alert("WebSocket connection closed test") };
@@ -188,7 +194,9 @@ $('input[type="checkbox"]').on('change', function() {
 	   $('input[type="checkbox"]').not(this).prop('checked', false);
 	});
 
+//place boats at the beginning
 id("next").addEventListener("click", function(){
+	$.notify("Alert!");
 	var column = parseInt(id("columnChoiceInput").value); 
 	var line = parseInt(id("lineChoiceInput").value);
 	choose1BoatPosition(column, line); 
@@ -202,6 +210,12 @@ id("next").addEventListener("click", function(){
 		direction = 1; 
 	}
 	updatePlaceBoard(column, line, direction, size);
+	console.log(boatsPlaced);
+	console.log(boats.length - 1);
+	
+	if (boatsPlaced != (boats.length)){
+		id("p1").innerHTML = "Votre bateau n°"+ (boatsPlaced + 1) +" a une longueur de <b style='color:red'>"+boats[boatsPlaced]+"</b> cases";
+	}
 })
 
 function updatePlaceBoard(column, line, direction, size){
@@ -209,12 +223,14 @@ function updatePlaceBoard(column, line, direction, size){
 	if (direction == 0){
 		for (var i=0; i<size; i++){
 			id("yourCell-"+(line+i)+"-"+column+"").style.backgroundColor = 'green';
+			id("init-"+(line+i)+"-"+column+"").style.backgroundColor = 'green';
 		}
 	}
 	//horizontal
 	else {
 		for (var j=0; j<size; j++){
 			id("yourCell-"+line+"-"+(column+j)+"").style.backgroundColor = 'green';
+			id("init-"+line+"-"+(column+j)+"").style.backgroundColor = 'green';
 		}
 	}
 }

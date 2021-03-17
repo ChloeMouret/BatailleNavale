@@ -35,15 +35,15 @@ import static spark.Spark.*;
 import static j2html.TagCreator.*;
 
 public class Game {
-	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,4);
+	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,1);
 	public static BiMap<Session, Player> sessionPlayerMap = HashBiMap.create();
 	public static Map<Integer, String> waitingListNames = new ConcurrentHashMap<>();
 	static int nextUserNumber = 1; //Used for creating the next username
 	public static Integer GameIdentity;
 	public static Map<Integer, Player> playersMap = new ConcurrentHashMap<>(); 
 	
-	public Game() {
-		this.GameIdentity = generateId();
+	public Game(Integer gameIdentity) {
+		this.GameIdentity = gameIdentity;
 	}
 	
 	public static Map<Session, Player>  getUsernameMap() {
@@ -70,7 +70,8 @@ public class Game {
 	
 	public static void playerBoat(Player player, Integer column, Integer line, Integer direction) {
 		Key boatKey = new Key(column, line); 
-		Boat boat = new Boat(boatKey, 2, direction, player.getBoard().getListBoat().size()); 
+		int playerNumberOfBoats = player.getBoard().getListBoat().size();
+		Boat boat = new Boat(boatKey, SIZE_OF_BOATS.get(playerNumberOfBoats), direction, player.getBoard().getListBoat().size()); 
 		player.getBoard().addBoat(boat);
 		Integer count = player.getBoard().getListBoat().size();
 		Session session = sessionPlayerMap.inverse().get(player);
@@ -105,6 +106,19 @@ public class Game {
 			}
 		}
 		System.out.println(player.getBoard().toString());
+	}
+	
+	public static void endOfGame(Player winner, Player loser) {
+		Session winnerSession = sessionPlayerMap.inverse().get(winner);
+		Session loserSession = sessionPlayerMap.inverse().get(loser);
+		try {
+			JSONObject socketMessageWinner = new JSONObject().put("type", "winner");
+			JSONObject socketMessageLoser = new JSONObject().put("type", "loser");
+			winnerSession.getRemote().sendString(String.valueOf(socketMessageWinner));
+			loserSession.getRemote().sendString(String.valueOf(socketMessageLoser));
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 	
 	public static void firstPlayer() {
@@ -162,63 +176,18 @@ public class Game {
         ).render();
     }
     
-    public static String render(Map<String, Object> model, String templatePath) {
+    
+    public void addPlayer(String playerName) {
+		waitingListNames.put(1, playerName);
+		
+    }
+    
+    public String render(Map<String, Object> model, String templatePath) {
         return new VelocityTemplateEngine().render(new ModelAndView(model, templatePath));
     }
     
-    public static JSONObject formToJSON(String requestBody) {
-    	int n = requestBody.length();
-    	String newData = requestBody.replace("=", "' : '");
-    	String newData2 = newData.replace("&", "', '");
-    	String newData3 = "{ '" + newData2 + "' }";
-    	return new JSONObject(newData3);
-    }
-    
-    public static Integer generateId() {
-    	String str = "";
-    	int max = 9;
-    	int min = 0; 
-    	for (int i=0; i<8; i++) {
-    		str = str + ((int) (Math.random()*(max - min)));
-    	}
-    	Integer id = Integer.parseInt(str);
-    	return id;
-    }
-    
-    //TODO : faire une autre classe --> webappy qui permet de créer différentes Game selon l'id
-    public static void playGame() {
-    	staticFileLocation("/public/"); //index.html is served at localhost:4567 (default port)
-    	webSocket("/socket", GameWebSocketHandler.class);
-    	post("/game", (req, res) -> {
-    		String newPlayerForm = req.body();
-    		JSONObject jsonReq = formToJSON(newPlayerForm);
-    		String username = jsonReq.getString("playerName");
-    		String requestType = jsonReq.getString("requestType");
-    		waitingListNames.put(1, username);
-    		if (requestType.equals("create")) {
-    			Integer generatedId = generateId();
-    			GameIdentity = generatedId; 
-    			//TODO : il faut ajouter le GameIdentity au front 
-    			System.out.println("GameIdentity : "+GameIdentity);
-    			Map<String, Object> model = new HashMap<>();
-        	    return render(model, "public/game.html");
-    		}
-    		else if (requestType.equals("join")){
-    			Integer gameIdJoin = jsonReq.getInt("gameId");
-    			System.out.println(gameIdJoin);
-    			if (gameIdJoin.equals(GameIdentity)) {
-    				System.out.println("enter if join");
-    				Map<String, Object> model = new HashMap<>();
-    	    	    return render(model, "public/game.html");
-    			}
-    			else throw new Exception("Not the good game");
-    		}
-    		else throw new Exception("not create and not join");
-    	}); 
-        init();
-    }
     
     public static void main(String[] args) {
-    	playGame(); 
+    	
     }
 }

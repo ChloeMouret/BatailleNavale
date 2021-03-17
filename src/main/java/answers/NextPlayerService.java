@@ -23,7 +23,6 @@ public class NextPlayerService implements Service{
 		}
 		Player nextPlayer = Game.playersMap.get(nextPlayerId);
 		Game.nextPlayer(user, Game.sessionPlayerMap.inverse().get(nextPlayer));
-		System.out.println("les 2 sessions sont differentes, should be false : "+ (user == Game.sessionPlayerMap.inverse().get(nextPlayer)));
 	}
 	
 
