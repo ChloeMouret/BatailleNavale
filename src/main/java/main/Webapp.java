@@ -118,6 +118,7 @@ public class Webapp {
     		if (requestType.equals("create")) {
     			Integer gameIdentity = generateId(); 
     			Game game = new Game(gameIdentity);
+    			System.out.println(game);
     			setListGames(game, gameIdentity);
 				getWaitingListNames().add(player);
     			listGameIdentity.add(gameIdentity);
@@ -137,6 +138,8 @@ public class Webapp {
     				System.out.println("enter if join");
     				Game game = getListGames().get(gameIdJoin);
     				getWaitingListNames().add(player);
+    				playersGames.put(player, game);
+    				System.out.println("Game 2nd player : " +game);
     	    	    return game.render("public/game.html");
     			}
     			else {

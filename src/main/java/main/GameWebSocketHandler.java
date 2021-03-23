@@ -32,6 +32,7 @@ public class GameWebSocketHandler {
     	Webapp.getWaitingListNames().remove(0);
     	System.out.println(player.getName()+" id is : "+ player.getId());
     	Webapp.getSessionPlayerMap().put(session, player);
+    	game.getGameSessionPlayerMap().put(session, player);
     	game.getPlayers().add(player);
     	
         //transmit info from back to JS

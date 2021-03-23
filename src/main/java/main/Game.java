@@ -40,12 +40,17 @@ public class Game {
 	static int nextUserNumber = 1; //Used for creating the next username
 	public Integer gameIdentity;
 	public ArrayList<Player> playersList = new ArrayList();
+	public BiMap<Session, Player> gameSessionPlayerMap = HashBiMap.create();
 	
 	public Game(Integer gameIdentity) {
 		this.gameIdentity = gameIdentity;
 	}
 	
-	public Integer gatGameIdentity () {
+	public BiMap<Session, Player> getGameSessionPlayerMap() {
+		return this.gameSessionPlayerMap;
+	}
+	
+	public Integer getGameIdentity () {
 		return this.gameIdentity;
 	}
 	
@@ -79,25 +84,20 @@ public class Game {
 		player.getBoard().addBoat(boat);
 		Integer count = player.getBoard().getListBoat().size();
 		Session session = Webapp.getSessionPlayerMap().inverse().get(player);
-		Player otherPlayer; 
-		System.out.println("1");
+		Player otherPlayer;
 		if (count == SIZE_OF_BOATS.size()) {
 			try {
 				if (getPlayers().size() == 1) {
 					JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "no");
-					System.out.println("3");
 					session.getRemote().sendString(String.valueOf(socketMessage));
 				}
 				else if (getPlayers().size() == 2){
 					if (player.getId() == getPlayers().get(0).getId()) {
-						System.out.println("1 bis");
 						otherPlayer = getPlayers().get(1);
 					}
 					else {
-						System.out.println("1 bis");
 						otherPlayer = getPlayers().get(0);
 					}
-					System.out.println("2");
 					Session otherSession = Webapp.getSessionPlayerMap().inverse().get(otherPlayer);
 					if (otherPlayer.getBoard().getListBoat().size() == SIZE_OF_BOATS.size()) {
 						JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "yes");
@@ -116,6 +116,37 @@ public class Game {
 		}
 		System.out.println(player.getBoard().toString());
 	}
+	
+	public static void errorPlayerChoice(Session session, JSONObject jsonMessage, String errorType) {
+		try {
+			if (errorType == "game-not-integer") {
+				Object column = jsonMessage.get("column");
+	    		Object line = jsonMessage.get("line");
+	    		String msg = "";
+	    		String error = "";
+	    		if (!(column instanceof Integer)) {
+	    			if (!(line instanceof Integer)) {
+	    				error = "column-line-not-integer";
+	    			}
+	    			else {
+	    				error = "column-not-integer";
+	    			}
+	    		}
+	    		else {
+	    			error = "line-not-integer";
+	    		}
+				JSONObject socketMessage = new JSONObject().put("type", "error")
+						.put("error", error)
+						.put("verticalBoardSize", Board.BOARD_H_SIZE)
+						.put("horizontalBoardSize", Board.BOARD_W_SIZE);
+				session.getRemote().sendString(String.valueOf(socketMessage));
+			}
+			
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+	
 	
 	public static void handleWebsocket() {
 		webSocket("/socket", GameWebSocketHandler.class);
@@ -166,13 +197,15 @@ public class Game {
      * broadcast message of sender in chat
      */
     public void broadcastChatMessage(Player sender, String message) {
-        Webapp.getSessionPlayerMap().keySet().stream().filter(Session::isOpen).forEach(session -> {
+        getGameSessionPlayerMap().keySet().stream().filter(Session::isOpen).forEach(session -> {
             try {
             	JSONObject msg = new JSONObject()
             			.put("type", "message")
                         .put("userMessage", createHtmlMessageFromSenderChat(sender, message))
                         .put("userlist", getPlayers())
-                        .put("boat", SIZE_OF_BOATS);
+                        .put("boat", SIZE_OF_BOATS)
+                        .put("gameId", getGameIdentity());
+            		
                 session.getRemote().sendString(String.valueOf(msg));
             } catch (Exception e) {
                 e.printStackTrace();

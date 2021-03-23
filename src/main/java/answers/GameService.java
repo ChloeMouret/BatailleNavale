@@ -15,42 +15,48 @@ public class GameService implements Service{
 	
 	@Override
 	public void answer(Session user, JSONObject jsonMessage) {
+		System.out.println(jsonMessage);
 		Player player1 = Webapp.getSessionPlayerMap().get(user);
     	Game game = Webapp.getPlayersGame().get(player1);
 		
-		Integer column = jsonMessage.getInt("column");
-		Integer line = jsonMessage.getInt("line");
-		//String htmlChange ="";
-		Player player2;
-		if (player1.getId() == game.getPlayers().get(0).getId()) {
-			player2 = game.getPlayers().get(1);
-		}
-		else {
-			player2 = game.getPlayers().get(0);
-		}
-		player2.getBoard().getCase(column,  line).setHasBeenShot();
-		System.out.println("Target board" +player2.getBoard().toStringTargetBoard());
-		Integer status = 0; 
-		String message = player1.getName() +" tire en (Col : "+column+", Ligne : "+line+")";
-		if (player2.getBoard().getCase(column, line).isBoat()) {
-			message = message + "\n" + "Touché ";
-			Integer boatId = player2.getBoard().getCase(column, line).getBoatId();
-			Boat boatTouched = player2.getBoard().getListBoat().get(boatId);
-			changeBoatStatus(boatTouched, player2);
-			status = boatTouched.getStatus();
-			if (status == 2) {
-				message = message + "Coulé ";
-				if (! player2.getBoard().stillABoatOnBoard()) {
-					game.endOfGame(player1, player2);
-				}
-			}
-		}
-		else {
-			message = message + "\n Raté ";
-		}
-		Player server = new Player("Server", 0);
-		game.broadcastChatMessage(server, message);
-		changeColorCase(user, column, line, status);
+    	if ((jsonMessage.get("column") instanceof Integer) && (jsonMessage.get("line") instanceof Integer)) {
+    		Integer column = jsonMessage.getInt("column");
+    		Integer line = jsonMessage.getInt("line");
+    		//String htmlChange ="";
+    		Player player2;
+    		if (player1.getId() == game.getPlayers().get(0).getId()) {
+    			player2 = game.getPlayers().get(1);
+    		}
+    		else {
+    			player2 = game.getPlayers().get(0);
+    		}
+    		player2.getBoard().getCase(column,  line).setHasBeenShot();
+    		System.out.println("Target board" +player2.getBoard().toStringTargetBoard());
+    		Integer status = 0; 
+    		String message = player1.getName() +" tire en (Col : "+column+", Ligne : "+line+")";
+    		if (player2.getBoard().getCase(column, line).isBoat()) {
+    			message = message + "\n" + "Touché ";
+    			Integer boatId = player2.getBoard().getCase(column, line).getBoatId();
+    			Boat boatTouched = player2.getBoard().getListBoat().get(boatId);
+    			changeBoatStatus(boatTouched, player2);
+    			status = boatTouched.getStatus();
+    			if (status == 2) {
+    				message = message + "Coulé ";
+    				if (! player2.getBoard().stillABoatOnBoard()) {
+    					game.endOfGame(player1, player2);
+    				}
+    			}
+    		}
+    		else {
+    			message = message + "\n Raté ";
+    		}
+    		Player server = new Player("Server", 0);
+    		game.broadcastChatMessage(server, message);
+    		changeColorCase(user, column, line, status);
+    	}
+    	else {
+    		game.errorPlayerChoice(user, jsonMessage, "game-not-integer"); 
+    	}
 	}
 	
 	

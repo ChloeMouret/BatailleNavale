@@ -1,5 +1,6 @@
 //Establish the WebSocket connection and set up event handlers
 var webSocket = new WebSocket("ws://localhost:4567/socket");
+var error = 0; 
 		//"ws://" + location.hostname + ":" + location.port + "/chat/"
 webSocket.onmessage = function (msg) { 
 	var json = JSON.parse(msg.data);
@@ -31,6 +32,20 @@ webSocket.onmessage = function (msg) {
 	else if (json.type=="loser"){
 		$("#modalLoser").modal('show');
 	}
+	else if (json.type=="error"){
+		error = 1;
+		if (json.error=="column-line-not-integer"){
+			console.log("in error : column & line not integer")
+			$.notify("Vous devez choisir un chiffre entre 0 et "+json.verticalBoardSize+" pour la ligne", {position : "top center"});
+			$.notify("Vous devez choisir un chiffre entre 0 et "+json.horizontalBoardSize+" pour la colonne", {position : "top center"});
+		}
+		else if (json.error=="column-not-interger"){
+			$.notify("Vous devez choisir un chiffre entre 0 et "+json.horizontalBoardSize+" pour la colonne", {position : "top center"});
+		}
+		else if (json.error=="line-not-integer"){
+			$.notify("Vous devez choisir un chiffre entre 0 et "+json.verticalBoardSize+" pour la ligne", {position : "top center"});
+		}
+	}
 };
 
 webSocket.onclose = function () { alert("WebSocket connection closed test") };
@@ -39,6 +54,7 @@ webSocket.onopen = function () { console.log("websocket connected")};
 
 var boats = {};
 var boatsPlaced = 0;
+
 
 var createOnce = function(json){
 	var executed = false;
@@ -110,8 +126,11 @@ function updateChat(msg) {
     //insert("chat", data.userMessage);
     id("userlist").innerHTML = "";
     json.userlist.forEach(function (user) {
+    	console.log(user["name"]);
         insert("userlist", "<li>" + user["name"] + "</li>");
     });
+    id("gameIdentity").innerHTML = "Game Id : <b>"+ json.gameId +"</b>";
+    
 }
 
 //Helper function for inserting HTML as the first child of an element
@@ -129,6 +148,18 @@ id("validateButton").addEventListener("click", function() {
 	targetBoard(id("columnInput").value, id("lineInput").value); 
 	nextPlayer();
 });
+
+//TODO
+id("copyButton").addEventListener("click", function () {
+	let temp = id("<input>");
+	console.log("in1");
+	$("body").append(temp);
+	console.log("in2");
+    temp.val(gameIdentity).select();
+    console.log("in3");
+    document.execCommand("copy");
+    temp.remove();
+})
 
 
 function nextPlayer(){
@@ -206,8 +237,12 @@ id("next").addEventListener("click", function(){
 	if (id("verticalCheckbox").checked){
 		direction = 0; 
 	}
-	else {
+	else if (id("verticalCheckbox").checked){
 		direction = 1; 
+	}
+	//Player did not choose the direction
+	else {
+		direction = 2; 
 	}
 	updatePlaceBoard(column, line, direction, size);
 	console.log("next event");
@@ -215,6 +250,7 @@ id("next").addEventListener("click", function(){
 	if (boatsPlaced != (boats.length)){
 		id("p1").innerHTML = "Votre bateau n°"+ (boatsPlaced + 1) +" a une longueur de <b style='color:red'>"+boats[boatsPlaced]+"</b> cases";
 	}
+	
 })
 
 function updatePlaceBoard(column, line, direction, size){

@@ -16,15 +16,14 @@ public class NextPlayerService implements Service{
 	public void answer(Session user, JSONObject jsonMessage) {
 		Player currentPlayer = Webapp.getSessionPlayerMap().get(user);
     	Game game = Webapp.getPlayersGame().get(currentPlayer);
-    	
-		Integer nextPlayerId ;
+    	System.out.println("in answer");
+		Player nextPlayer ;
 		if (currentPlayer.getId() == game.getPlayers().get(0).getId()) {
-			nextPlayerId = game.getPlayers().get(1).getId();
+			nextPlayer = game.getPlayers().get(1);
 		}
 		else {
-			nextPlayerId = game.getPlayers().get(0).getId(); 
+			nextPlayer = game.getPlayers().get(0); 
 		}
-		Player nextPlayer = game.getPlayers().get(nextPlayerId);
 		game.nextPlayer(user, Webapp.getSessionPlayerMap().inverse().get(nextPlayer));
 	}
 	
