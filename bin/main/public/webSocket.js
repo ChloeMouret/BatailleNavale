@@ -54,6 +54,11 @@ webSocket.onopen = function () { console.log("websocket connected")};
 
 var boats = {};
 var boatsPlaced = 0;
+var boardVerticalSize = 0;
+var boardHorizontalSize = 0; 
+var columnTarget = -1;
+var lineTarget = -1; 
+var listIdBoatsPlaced = []; 
 
 
 var createOnce = function(json){
@@ -66,9 +71,214 @@ var createOnce = function(json){
 		id("header1").innerHTML = "<i> Vous avez "+ json.boats.length +" bateaux a placer </i>";
 		id("p1").innerHTML = "Votre bateau n°1 a une longueur de <b style='color:red'>"+json.boats[0]+"</b> cases";
 		boats = json.boats;
+		boardVerticalSize = json.height; 
+		boardHorizontalSize = json.width; 
+		createMoovingDiv(1); 
 	}
-	//console.log("Shoud be 4 : "+boats[1]);
 }
+
+//document.getElementByClassName("cell").onmouseover
+
+
+function getColumnFromId(id){
+	return id.charAt(id.length-1); 
+}
+
+function getLineFromId(id){
+	return id.charAt(id.length-3);
+}
+
+//O=Vertical, 1=Horizontal
+function createMoovingDiv(direction){
+	var boatSize = boats[boatsPlaced];
+	id("container").innerHTML = "<div id='moovingDiv"+boatsPlaced+"' style='display:flex; flex-direction : horizontal; width :100px'>";
+	if (direction == 0){
+		id("moovingDiv"+boatsPlaced).style.height = 50*boatSize+"px";
+		id("moovingDiv"+boatsPlaced).style.width = "50px"; 
+		id("moovingDiv"+boatsPlaced).style.display = "block"; 
+		if (boatSize == 1){
+			id("moovingDiv"+boatsPlaced).innerHTML = "<div id='moovingCell' class='boat'></div>";
+		}
+		else {
+			id("moovingDiv"+boatsPlaced).innerHTML = "<div id='moovingCell' class='boat'></div>";
+			for (var i=0; i<boatSize-1; i++){
+				id("moovingDiv"+boatsPlaced).innerHTML = id("moovingDiv"+boatsPlaced).innerHTML + "<div style='margin-top: -6px' class='boat'></div>"; 
+			}
+		}
+		id("grid").innerHTML = ""; 
+		createBoard(boardHorizontalSize ,boardVerticalSize , "grid", "init");
+		verticalDrag(boatSize);
+	}
+	else {
+		id("moovingDiv"+boatsPlaced).style.width = 50*boatSize+"px";
+		if (boatSize == 1){
+			id("moovingDiv"+boatsPlaced).innerHTML = "<div id='moovingCell' class='boat'></div>";
+		}
+		else {
+			id("moovingDiv"+boatsPlaced).innerHTML = "<div id='moovingCell' class='boat' style='width : 50px'></div>";
+			for (var i=0; i<boatSize-1; i++){
+				id("moovingDiv"+boatsPlaced).innerHTML = id("moovingDiv"+boatsPlaced).innerHTML + "<div class='boat'></div>"; 
+			}
+		}
+		id("grid").innerHTML = ""; 
+		createBoard(boardHorizontalSize ,boardVerticalSize , "grid", "init");
+		horizontalDrag(boatSize);
+	}
+}
+
+//O=Vertical, 1=Horizontal
+function changeMoovingDiv(direction){
+	if (direction == 0){
+		id("container").innerHTML = "<div id='moovingDiv"+boatsPlaced+"' style='width :50px; height: auto'>"; 
+		createMoovingDiv(direction);
+	}
+	else {
+		id("container").innerHTML = "<div id='moovingDiv"+boatsPlaced+"' style='display:flex; flex-direction : horizontal; width :auto'></div>"; 
+		createMoovingDiv(direction);
+	}
+}
+
+//O=Vertical, 1=Horizontal
+function unableDroppable(boatSize, direction) {
+	if (direction == 0){
+		for (var j=0; j<boardVerticalSize; j++){
+			for (var k=0; k<boardHorizontalSize; k++){
+				if (k>(boardHorizontalSize-boatSize)) {
+					id("init-"+k+"-"+j).className = "cellNoDroppable"
+				}
+				else {
+					id("init-"+k+"-"+j).className = "cellD"
+				}
+			}
+		}
+		if (listIdBoatsPlaced.length !=0){
+			unableDroppableOnBoat(boatSize, direction); 
+		}
+	}
+	else if (direction ==1){
+		for (var j=0; j<boardVerticalSize; j++){
+			for (var k=0; k<boardHorizontalSize; k++){
+				if (j>(boardHorizontalSize-boatSize)){
+					id("init-"+k+"-"+j).className = "cellNoDroppable"
+				}
+				else {
+					id("init-"+k+"-"+j).className = "cellD"
+				}
+			}
+		}
+		if (listIdBoatsPlaced.length !=0){ 
+			console.log("ok")
+			unableDroppableOnBoat(boatSize, direction); 
+		}
+	}
+	else {
+		console.log("Not good direction"); 
+	}
+}
+
+function unableDroppableOnBoat(boatSize, direction){
+	for (var i=0; i<listIdBoatsPlaced.length; i++){ 
+		var column=parseInt(getColumnFromId(listIdBoatsPlaced[i])); 
+		var line=parseInt(getLineFromId(listIdBoatsPlaced[i])); 
+		if (direction == 0){
+			if ((line-boatSize+1)>=0) {
+				for (var j=0; j<boatSize; j++) {
+					id("init-"+(line-j)+"-"+column).className = "cellNoDroppable"
+				}
+			}
+			else {
+				if (line != 0){
+					for (var k=0; k<(line+1); k++) {
+						id("init-"+(line-k)+"-"+column).className = "cellNoDroppable"; 
+					}
+				}
+				else {   //line = 0 
+					id("init-"+line+"-"+column).className = "cellNoDroppable"; 
+				}
+			}
+		}
+		else {
+			if ((column-boatSize+1)>=0) {
+				for (var j=0; j<boatSize; j++) {
+					id("init-"+line+"-"+(column-j)).className = "cellNoDroppable"
+				}
+			}
+			else {
+				if (column != 0){
+					for (var k=0; k<(column+1); k++) {
+						id("init-"+line+"-"+(column-k)).className = "cellNoDroppable"; 
+					}
+				}
+				else {   //column = 0 
+					id("init-"+line+"-"+column).className = "cellNoDroppable"; 
+				}
+			}
+		}
+	}
+}
+
+function horizontalDrag(boatSize) {
+	unableDroppable(boatSize, 1); 
+	$("#moovingDiv"+boatsPlaced).draggable({
+		revert: "invalid", 
+		cursor: "move", 
+		cursorAt: { top: 25, left: 25 }
+	});
+	$(".cellD").droppable({
+		tolerance: "pointer",
+		drop: function(event, ui) {
+			var $this = $(this);
+//			var positionDiv = document.getElementById($(this).get(0).id).getBoundingClientRect();
+//			var top = positionDiv.top;
+//			var left = positionDiv.left; 
+			columnTarget=getColumnFromId($(this).get(0).id); 
+			lineTarget=getLineFromId($(this).get(0).id);
+			console.log(columnTarget, lineTarget);
+			id("next").disabled = false; 
+			//$(this).css("background-color","green");
+			tolerance: "pointer",
+		    ui.draggable.position({
+		    	my: "left-"+(100/(boatSize*2))+"%",
+		    	at: "center",
+		    	of: $this,
+		    	using: function(pos) {
+		    		$(this).animate(pos, 200, "linear");
+		    	}
+		    });
+		 }
+	});
+}
+
+function verticalDrag(boatSize) {
+	unableDroppable(boatSize, 0);
+	$("#moovingDiv"+boatsPlaced).draggable({
+		revert: "invalid", 
+		cursor: "move", 
+		cursorAt: { top: 25, left: 25 }
+	});
+	$(".cellD").droppable({
+		tolerance: "pointer",
+		drop: function(event, ui) {
+			var $this = $(this);
+			columnTarget=getColumnFromId($(this).get(0).id); 
+			lineTarget=getLineFromId($(this).get(0).id); 
+			console.log(columnTarget, lineTarget);
+			id("next").disabled = false; 
+			//$(this).css("background-color","green");
+			tolerance: "pointer",
+		    ui.draggable.position({
+		    	my: "top-"+(100/(boatSize*2))+"%",
+		    	at: "center",
+		    	of: $this,
+		    	using: function(pos) {
+		    		$(this).animate(pos, 0, "linear");
+		    	}
+		    });
+		 }
+	});
+}
+
+
 
 function waitingOtherPlayer(msg) {
 	var json = JSON.parse(msg.data);
@@ -142,6 +352,16 @@ function insert(targetId, message) {
 function id(id) {
     return document.getElementById(id);
 }
+//
+//function getClass(className){
+//	return document.getElementsByClassName(className);
+//}
+//
+//getClass("celltargetBoard").onmouseover = function () {
+//	columnTarget=getColumnFromId($(this).get(0).id); 
+//	console.log(column)
+//	lineTarget=getLineFromId($(this).get(0).id);
+//}
 
 //send message userX has fired
 id("validateButton").addEventListener("click", function() {
@@ -207,16 +427,21 @@ function createBoard(nbColumn, nbLine, div, id){
 	console.log("in create Board");
 	for (var i=0; i<nbLine; i++){
 		insert(div, "<div style='display:flex; flex-direction : horizontal; width :"+(30+50*nbColumn)+"px'>" +
-				"<div class=idCellVerti' style='width:30px; background-color : #ebf5fb; text-align : center; border:1px solid black" +
-				"'>"+(nbLine-i-1)+"</div><div id = 'row" +(nbLine-i-1)+"' class='row' style='width :"+(50*nbColumn)+"px'></div></div>")
+				"<div class=idCellVerti style='width:30px; background-color : #ebf5fb; text-align : center; border:1px solid black" +
+				"'>"+(nbLine-i-1)+"</div><div id = 'row-"+div+"-" +(nbLine-i-1)+"' class='row' style='width :"+(50*nbColumn)+"px'></div></div>")
 		for (var j=0; j<nbColumn; j++){
-			insert("row"+(nbLine-i-1)+"", "<div id = '"+id+"-"+(nbLine-i-1)+"-"+(nbColumn-j-1)+"' class='cell'></div>")
+			insert("row-"+div+"-"+(nbLine-i-1)+"", "<div id = '"+id+"-"+(nbLine-i-1)+"-"+(nbColumn-j-1)+"' class='cell"+div+"'></div>")
 		}
 	}
 	//insert first line which is numeros of columns
-	insert(div, "<div id = 'rowIni' style='height : 30px; width :"+(50*nbColumn)+"px; margin-left : 30px'></div>")
+	insert(div, "<div id = 'rowIni-"+div+"' style='height : 30px; width :"+(50*nbColumn)+"px; margin-left : 30px'></div>")
 	for (var j=1; j<nbColumn+1; j++){
-		insert("rowIni", "<div class='idCellHori'> "+ (nbColumn-j) +"</div>")
+		insert("rowIni-"+div+"", "<div class='idCellHori'> "+ (nbColumn-j) +"</div>")
+	}
+	if (listIdBoatsPlaced.length != 0){
+		for (var i=0; i<listIdBoatsPlaced.length; i++){
+			document.getElementById(listIdBoatsPlaced[i]).style.backgroundColor = 'green';
+		}
 	}
 }
 
@@ -228,9 +453,9 @@ $('input[type="checkbox"]').on('change', function() {
 
 //place boats at the beginning
 id("next").addEventListener("click", function(){
-	var column = parseInt(id("columnChoiceInput").value); 
-	var line = parseInt(id("lineChoiceInput").value);
-	choose1BoatPosition(column, line); 
+	//var column = parseInt(id("columnChoiceInput").value); 
+	//var line = parseInt(id("lineChoiceInput").value);
+	choose1BoatPosition(columnTarget, lineTarget); 
 	var direction; 
 	var size = boats[boatsPlaced];
 	boatsPlaced ++;
@@ -244,12 +469,17 @@ id("next").addEventListener("click", function(){
 	else {
 		direction = 2; 
 	}
+	var column = parseInt(columnTarget); 
+	var line = parseInt(lineTarget);
 	updatePlaceBoard(column, line, direction, size);
 	console.log("next event");
+	createMoovingDiv(1);
 	
 	if (boatsPlaced != (boats.length)){
 		id("p1").innerHTML = "Votre bateau n°"+ (boatsPlaced + 1) +" a une longueur de <b style='color:red'>"+boats[boatsPlaced]+"</b> cases";
 	}
+	id("horizontalCheckbox").checked = true; 
+	id("verticalCheckbox").checked = false; 
 	
 })
 
@@ -259,6 +489,7 @@ function updatePlaceBoard(column, line, direction, size){
 		for (var i=0; i<size; i++){
 			id("yourCell-"+(line+i)+"-"+column+"").style.backgroundColor = 'green';
 			id("init-"+(line+i)+"-"+column+"").style.backgroundColor = 'green';
+			listIdBoatsPlaced.push("init-"+(line+i)+"-"+column+"");
 		}
 	}
 	//horizontal
@@ -266,6 +497,7 @@ function updatePlaceBoard(column, line, direction, size){
 		for (var j=0; j<size; j++){
 			id("yourCell-"+line+"-"+(column+j)+"").style.backgroundColor = 'green';
 			id("init-"+line+"-"+(column+j)+"").style.backgroundColor = 'green';
+			listIdBoatsPlaced.push("init-"+line+"-"+(column+j)+"");
 		}
 	}
 }
@@ -291,8 +523,8 @@ function choose1BoatPosition(column, line){
 		id("columnInput").value = ""; 
 		id("lineInput").value = "";
 	}
-	id("columnChoiceInput").value = "";
-	id("lineChoiceInput").value = "";
+	//id("columnChoiceInput").value = "";
+	//id("lineChoiceInput").value = "";
 	//id("verticalCheckbox").prop('checked', false);
 	//id("horizontalCheckbox").prop('checked', false);
 }

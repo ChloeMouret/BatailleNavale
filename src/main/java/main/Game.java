@@ -36,7 +36,7 @@ import static spark.Spark.*;
 import static j2html.TagCreator.*;
 
 public class Game {
-	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,1);
+	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,3);
 	static int nextUserNumber = 1; //Used for creating the next username
 	public Integer gameIdentity;
 	public ArrayList<Player> playersList = new ArrayList();
@@ -120,8 +120,8 @@ public class Game {
 	public static void errorPlayerChoice(Session session, JSONObject jsonMessage, String errorType) {
 		try {
 			if (errorType == "game-not-integer") {
-				Object column = jsonMessage.get("column");
-	    		Object line = jsonMessage.get("line");
+				Object column = jsonMessage.getInt("column");
+	    		Object line = jsonMessage.getInt("line");
 	    		String msg = "";
 	    		String error = "";
 	    		if (!(column instanceof Integer)) {
