@@ -1,3 +1,8 @@
+# Other stuff
+
+.DS_Store
+bin/
+
 # Ignore Gradle project-specific cache directory
 .gradle
 
