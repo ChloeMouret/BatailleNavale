@@ -1,5 +1,6 @@
 package answers;
 
+
 import org.eclipse.jetty.websocket.api.Session;
 import org.json.JSONObject;
 
@@ -8,21 +9,24 @@ import main.Case;
 import main.Game;
 import main.Key;
 import main.Player;
+import main.Webapp;
 
 public class GameService implements Service{
 	
 	@Override
 	public void answer(Session user, JSONObject jsonMessage) {
-		Integer column = jsonMessage.getInt("column");
-		Integer line = jsonMessage.getInt("line");
+		System.out.println(jsonMessage);
+		Player player1 = Webapp.getSessionPlayerMap().get(user);
+    	Game game = Webapp.getPlayersGame().get(player1);
+    	Integer column = Integer.parseInt(jsonMessage.getString("column"));
+    	Integer line = Integer.parseInt(jsonMessage.getString("line"));
 		//String htmlChange ="";
-		Player player1 = Game.getUsernameMap().get(user); 
 		Player player2;
-		if (player1.getId()== 0) {
-			player2 = Game.playersMap.get(1);
+		if (player1.getId() == game.getPlayers().get(0).getId()) {
+			player2 = game.getPlayers().get(1);
 		}
 		else {
-			player2 = Game.playersMap.get(0);
+			player2 = game.getPlayers().get(0);
 		}
 		player2.getBoard().getCase(column,  line).setHasBeenShot();
 		System.out.println("Target board" +player2.getBoard().toStringTargetBoard());
@@ -37,7 +41,7 @@ public class GameService implements Service{
 			if (status == 2) {
 				message = message + "Coulé ";
 				if (! player2.getBoard().stillABoatOnBoard()) {
-					Game.endOfGame(player1, player2);
+					game.endOfGame(player1, player2);
 				}
 			}
 		}
@@ -45,7 +49,7 @@ public class GameService implements Service{
 			message = message + "\n Raté ";
 		}
 		Player server = new Player("Server", 0);
-		Game.broadcastChatMessage(server, message);
+		game.broadcastChatMessage(server, message);
 		changeColorCase(user, column, line, status);
 	}
 	
@@ -55,6 +59,7 @@ public class GameService implements Service{
 		System.out.println("enter changeColorCase");
 		try {
 			JSONObject msg = new JSONObject().put("type", "game").put("column", column).put("line", line).put("status", status);
+			
 	        session.getRemote().sendString(String.valueOf(msg));
 		} catch (Exception e) {
             e.printStackTrace();

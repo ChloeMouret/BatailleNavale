@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,19 +36,26 @@ import static spark.Spark.*;
 import static j2html.TagCreator.*;
 
 public class Game {
-	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,1);
-	public static BiMap<Session, Player> sessionPlayerMap = HashBiMap.create();
-	public static Map<Integer, String> waitingListNames = new ConcurrentHashMap<>();
+	public static final List<Integer> SIZE_OF_BOATS = Lists.newArrayList(2,3);
 	static int nextUserNumber = 1; //Used for creating the next username
-	public static Integer GameIdentity;
-	public static Map<Integer, Player> playersMap = new ConcurrentHashMap<>(); 
+	public Integer gameIdentity;
+	public ArrayList<Player> playersList = new ArrayList();
+	public BiMap<Session, Player> gameSessionPlayerMap = HashBiMap.create();
 	
 	public Game(Integer gameIdentity) {
-		this.GameIdentity = gameIdentity;
+		this.gameIdentity = gameIdentity;
 	}
 	
-	public static Map<Session, Player>  getUsernameMap() {
-		return sessionPlayerMap;
+	public BiMap<Session, Player> getGameSessionPlayerMap() {
+		return this.gameSessionPlayerMap;
+	}
+	
+	public Integer getGameIdentity () {
+		return this.gameIdentity;
+	}
+	
+	public ArrayList<Player> getPlayers() {
+		return this.playersList;
 	}
 	
 	//TODO : coté js : faire pour qu'on ne puisse entrer que des chiffres
@@ -68,28 +76,29 @@ public class Game {
         }
 	}
 	
-	public static void playerBoat(Player player, Integer column, Integer line, Integer direction) {
+	public void playerBoat(Player player, Integer column, Integer line, Integer direction) {
+		System.out.println("in playerBoat");
 		Key boatKey = new Key(column, line); 
 		int playerNumberOfBoats = player.getBoard().getListBoat().size();
 		Boat boat = new Boat(boatKey, SIZE_OF_BOATS.get(playerNumberOfBoats), direction, player.getBoard().getListBoat().size()); 
 		player.getBoard().addBoat(boat);
 		Integer count = player.getBoard().getListBoat().size();
-		Session session = sessionPlayerMap.inverse().get(player);
-		Player otherPlayer; 
-		if (player.getId() == 0) {
-			otherPlayer = playersMap.get(1);
-		}
-		else {
-			otherPlayer = playersMap.get(0);
-		}
-		Session otherSession = sessionPlayerMap.inverse().get(otherPlayer);
+		Session session = Webapp.getSessionPlayerMap().inverse().get(player);
+		Player otherPlayer;
 		if (count == SIZE_OF_BOATS.size()) {
 			try {
-				if (sessionPlayerMap.size() == 1) {
+				if (getPlayers().size() == 1) {
 					JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "no");
 					session.getRemote().sendString(String.valueOf(socketMessage));
 				}
-				else if (sessionPlayerMap.size() == 2){
+				else if (getPlayers().size() == 2){
+					if (player.getId() == getPlayers().get(0).getId()) {
+						otherPlayer = getPlayers().get(1);
+					}
+					else {
+						otherPlayer = getPlayers().get(0);
+					}
+					Session otherSession = Webapp.getSessionPlayerMap().inverse().get(otherPlayer);
 					if (otherPlayer.getBoard().getListBoat().size() == SIZE_OF_BOATS.size()) {
 						JSONObject socketMessage = new JSONObject().put("type", "boats-ok").put("otherPlayerReady", "yes");
 						session.getRemote().sendString(String.valueOf(socketMessage));
@@ -108,9 +117,45 @@ public class Game {
 		System.out.println(player.getBoard().toString());
 	}
 	
-	public static void endOfGame(Player winner, Player loser) {
-		Session winnerSession = sessionPlayerMap.inverse().get(winner);
-		Session loserSession = sessionPlayerMap.inverse().get(loser);
+	public static void errorPlayerChoice(Session session, JSONObject jsonMessage, String errorType) {
+		try {
+			if (errorType == "game-not-integer") {
+				Object column = jsonMessage.getInt("column");
+	    		Object line = jsonMessage.getInt("line");
+	    		String msg = "";
+	    		String error = "";
+	    		if (!(column instanceof Integer)) {
+	    			if (!(line instanceof Integer)) {
+	    				error = "column-line-not-integer";
+	    			}
+	    			else {
+	    				error = "column-not-integer";
+	    			}
+	    		}
+	    		else {
+	    			error = "line-not-integer";
+	    		}
+				JSONObject socketMessage = new JSONObject().put("type", "error")
+						.put("error", error)
+						.put("verticalBoardSize", Board.BOARD_H_SIZE)
+						.put("horizontalBoardSize", Board.BOARD_W_SIZE);
+				session.getRemote().sendString(String.valueOf(socketMessage));
+			}
+			
+		} catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
+	
+	
+	public static void handleWebsocket() {
+		webSocket("/socket", GameWebSocketHandler.class);
+		init();
+	}
+	
+	public void endOfGame(Player winner, Player loser) {
+		Session winnerSession = Webapp.getSessionPlayerMap().inverse().get(winner);
+		Session loserSession = Webapp.getSessionPlayerMap().inverse().get(loser);
 		try {
 			JSONObject socketMessageWinner = new JSONObject().put("type", "winner");
 			JSONObject socketMessageLoser = new JSONObject().put("type", "loser");
@@ -121,11 +166,11 @@ public class Game {
         }
 	}
 	
-	public static void firstPlayer() {
+	public void firstPlayer() {
 		Random r1 = new Random();
 		int idFirstPlayer = r1.nextInt(2);
-		System.out.println("firstPlayer id is : "+idFirstPlayer);
-		Session session = sessionPlayerMap.inverse().get(playersMap.get(idFirstPlayer));
+		System.out.println("firstPlayer id is : "+ getPlayers().get(idFirstPlayer));
+		Session session = Webapp.getSessionPlayerMap().inverse().get(getPlayers().get(idFirstPlayer));
 		try {
 			JSONObject socketMessage = new JSONObject().put("type", "turn");
 			session.getRemote().sendString(String.valueOf(socketMessage));
@@ -134,7 +179,7 @@ public class Game {
         }
 	}
 	
-	public static void nextPlayer(Session oldSession, Session newSession) {
+	public void nextPlayer(Session oldSession, Session newSession) {
 		try {
 			JSONObject socketMessageNextPlayer = new JSONObject().put("type", "turn");
 			JSONObject socketMessageAncientPlayer = new JSONObject().put("type", "not-turn");
@@ -151,14 +196,16 @@ public class Game {
      * @param message
      * broadcast message of sender in chat
      */
-    public static void broadcastChatMessage(Player sender, String message) {
-        sessionPlayerMap.keySet().stream().filter(Session::isOpen).forEach(session -> {
+    public void broadcastChatMessage(Player sender, String message) {
+        getGameSessionPlayerMap().keySet().stream().filter(Session::isOpen).forEach(session -> {
             try {
             	JSONObject msg = new JSONObject()
             			.put("type", "message")
                         .put("userMessage", createHtmlMessageFromSenderChat(sender, message))
-                        .put("userlist", sessionPlayerMap.values())
-                        .put("boat", SIZE_OF_BOATS);
+                        .put("userlist", getPlayers())
+                        .put("boat", SIZE_OF_BOATS)
+                        .put("gameId", getGameIdentity());
+            		
                 session.getRemote().sendString(String.valueOf(msg));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -177,12 +224,8 @@ public class Game {
     }
     
     
-    public void addPlayer(String playerName) {
-		waitingListNames.put(1, playerName);
-		
-    }
-    
-    public String render(Map<String, Object> model, String templatePath) {
+    public String render(String templatePath) {
+    	Map<String, Object> model = new HashMap<>();
         return new VelocityTemplateEngine().render(new ModelAndView(model, templatePath));
     }
     

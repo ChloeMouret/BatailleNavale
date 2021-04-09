@@ -14,6 +14,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.json.JSONObject;
 
+
 import answers.Service;
 import spark.ModelAndView;
 import spark.template.velocity.VelocityTemplateEngine;
@@ -26,40 +27,45 @@ public class GameWebSocketHandler {
 	 
     @OnWebSocketConnect
     public void onConnect(Session session) throws Exception {
-    	String username = Game.waitingListNames.get(1);
-    	Game.waitingListNames.remove(1);
-    	Player player = new Player(username, Game.playersMap.size());
+    	Player player = Webapp.getWaitingListNames().get(0);
+    	Game game = Webapp.getPlayersGame().get(player);
+    	Webapp.getWaitingListNames().remove(0);
     	System.out.println(player.getName()+" id is : "+ player.getId());
-        Game.sessionPlayerMap.put(session, player);
-        Game.playersMap.put(player.getId(), player);
-        
+    	Webapp.getSessionPlayerMap().put(session, player);
+    	game.getGameSessionPlayerMap().put(session, player);
+    	game.getPlayers().add(player);
+    	
         //transmit info from back to JS
-        Game.transmitInfoToJS(session);
+        game.transmitInfoToJS(session);
         
         //allow to put message from the server, hypothetical player 
         Player server = new Player("Server", 0);
-        Game.broadcastChatMessage(server, (username + " joined the game"));
+        game.broadcastChatMessage(server, (player.getName() + " joined the game"));
         
         //if 2 players are connected it handles which one begins
-        if (Game.playersMap.size()==2) {
-        	Game.firstPlayer();
+        if (game.getPlayers().size()==2) {
+        	game.firstPlayer();
         }
     }
 
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        String username = Game.sessionPlayerMap.get(player).getName();
-        Game.sessionPlayerMap.remove(session);
+    	Player player = Webapp.getSessionPlayerMap().get(session);
+    	Game game = Webapp.getPlayersGame().get(player);
+        Webapp.getSessionPlayerMap().remove(session);
+        Webapp.getPlayersGame().remove(player);
+        game.getPlayers().remove(player);
         
       //allow to put message from the server, hypothetical player 
         Player server = new Player("Server", 0);
-        Game.broadcastChatMessage(server, (username + " left the game"));
+        game.broadcastChatMessage(server, (player.getName() + " left the game"));
     }
 
     @OnWebSocketMessage
     public void onMessage(Session user, String message) {
     	JSONObject json = new JSONObject(message);
     	String status = json.get("type").toString();
+    	System.out.println("status is :" + status);
     	int statusInt = Integer.parseInt(status);
     	Service service = Service.getInstance(statusInt);
     	service.answer(user, json);
