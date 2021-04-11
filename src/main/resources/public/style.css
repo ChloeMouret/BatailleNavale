@@ -60,6 +60,11 @@ a:focus{
 	background-color : grey; 
 }
 
+
+.celltargetBoard:hover {
+	background-color : purple; 
+}
+
 .cellyourBoard{
 	height : 50px;
 	width : 50px;
@@ -99,10 +104,6 @@ a:focus{
 .placed {
 	background-color : green;
 }
-
-/* .cell:hover { */
-/* 	background-color : green;  */
-/* } */
 
 .idCellHori{
 	height : 30px;

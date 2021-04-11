@@ -12,11 +12,18 @@ webSocket.onmessage = function (msg) {
 	}
 	else if (json.type=="turn"){
 		console.log("firstPlayer");
+		myTurn=true; 
 		id("validateButton").style.display = "block";
+		id("validateButton").innerHTML = "Cliquez où vous voulez tirer"; 
+		id("validateButton").style.pointerEvents = "none";
 	}
 	else if (json.type == "not-turn"){
 		console.log("not my turn");
-		id("validateButton").style.display = "none";
+		myTurn=false; 
+		id("validateButton").style.display = "block";
+		id("validateButton").innerHTML = "Ce n'est pas ton tour"; 
+		id("validateButton").style.pointerEvents = "none";
+		id("validateButton").style.backgroundColor = "white";
 	}
 	else if (json.type=="init"){
 		console.log("init");
@@ -56,9 +63,14 @@ var boats = {};
 var boatsPlaced = 0;
 var boardVerticalSize = 0;
 var boardHorizontalSize = 0; 
-var columnTarget = -1;
-var lineTarget = -1; 
+var columnChoice = -1;
+var lineChoice = -1; 
 var listIdBoatsPlaced = []; 
+var columnTarget = -1; 
+var lineTarget = -1; 
+var previousTarget = ""; 
+var previousColor = "grey"; 
+var myTurn = false; 
 
 
 var createOnce = function(json){
@@ -77,8 +89,35 @@ var createOnce = function(json){
 	}
 }
 
-//document.getElementByClassName("cell").onmouseover
+var elements = document.getElementsByClassName("celltargetBoard"); 
 
+function getHTMLCollectionelements(){
+	for (var i = 0; i < elements.length; i++) {
+	    elements[i].addEventListener("click", function () {
+	    	columnTarget = getColumnFromId($(this).get(0).id); 
+	    	lineTarget = getLineFromId($(this).get(0).id); 
+	    	console.log(columnTarget);
+	    	console.log(lineTarget);
+//	    	id("columnInput").value = columnTarget; 
+//	    	id("lineInput").value = lineTarget;
+	    	if (myTurn){
+	    		id("validateButton").innerHTML = "Tirer en : \n Colonne : "+columnTarget+"\n Ligne : "+lineTarget + ""; 
+		    	id("validateButton").style.backgroundColor = 'red';
+		    	id("validateButton").style.pointerEvents = "auto";
+		    	if (previousTarget!=""){
+		    		id(previousTarget).style.backgroundColor = previousColor; 
+		    	}
+		    	previousTarget="cell-"+lineTarget+"-"+columnTarget+""; 
+		    	previousColor=id(previousTarget).style.backgroundColor; 
+		    	id(previousTarget).style.backgroundColor = 'purple';
+	    	}
+	    	else {
+	    		columnTarget=-1; 
+	    		lineTarget=-1; 
+	    	}
+	    });
+	}
+}
 
 function getColumnFromId(id){
 	return id.charAt(id.length-1); 
@@ -231,9 +270,8 @@ function horizontalDrag(boatSize) {
 //			var positionDiv = document.getElementById($(this).get(0).id).getBoundingClientRect();
 //			var top = positionDiv.top;
 //			var left = positionDiv.left; 
-			columnTarget=getColumnFromId($(this).get(0).id); 
-			lineTarget=getLineFromId($(this).get(0).id);
-			console.log(columnTarget, lineTarget);
+			columnChoice=getColumnFromId($(this).get(0).id); 
+			lineChoice=getLineFromId($(this).get(0).id);
 			id("next").disabled = false; 
 			//$(this).css("background-color","green");
 			tolerance: "pointer",
@@ -260,9 +298,8 @@ function verticalDrag(boatSize) {
 		tolerance: "pointer",
 		drop: function(event, ui) {
 			var $this = $(this);
-			columnTarget=getColumnFromId($(this).get(0).id); 
-			lineTarget=getLineFromId($(this).get(0).id); 
-			console.log(columnTarget, lineTarget);
+			columnChoice=getColumnFromId($(this).get(0).id); 
+			lineChoice=getLineFromId($(this).get(0).id); 
 			id("next").disabled = false; 
 			//$(this).css("background-color","green");
 			tolerance: "pointer",
@@ -352,21 +389,19 @@ function insert(targetId, message) {
 function id(id) {
     return document.getElementById(id);
 }
-//
-//function getClass(className){
-//	return document.getElementsByClassName(className);
-//}
-//
-//getClass("celltargetBoard").onmouseover = function () {
-//	columnTarget=getColumnFromId($(this).get(0).id); 
-//	console.log(column)
-//	lineTarget=getLineFromId($(this).get(0).id);
-//}
+
 
 //send message userX has fired
 id("validateButton").addEventListener("click", function() {
-	targetBoard(id("columnInput").value, id("lineInput").value); 
-	nextPlayer();
+	if (columnTarget!=-1 && lineTarget!=-1){
+		targetBoard(columnTarget, lineTarget); 
+		//id("validateButton").innerHTML = "Cliquez où vous voulez tirer"; 
+		//id("validateButton").style.backgroundColor = 'white';
+		columnTarget=-1;
+		lineTarget=-1;
+		previousTarget=""; 
+		nextPlayer();
+	}
 });
 
 //TODO
@@ -391,6 +426,7 @@ function nextPlayer(){
 
 
 function targetBoard(column, line){
+	console.log("in target Board"); 
 	if (column !== "" && line != ""){
 		data = {};
 		data["type"] = 3;
@@ -398,8 +434,8 @@ function targetBoard(column, line){
 		data["line"]=line;
 		data = JSON.stringify(data)
 		webSocket.send(data);
-		id("columnInput").value = "";
-		id("lineInput").value = "";
+//		id("columnInput").value = "";
+//		id("lineInput").value = "";
 	}
 }
 
@@ -455,10 +491,13 @@ $('input[type="checkbox"]').on('change', function() {
 id("next").addEventListener("click", function(){
 	//var column = parseInt(id("columnChoiceInput").value); 
 	//var line = parseInt(id("lineChoiceInput").value);
-	choose1BoatPosition(columnTarget, lineTarget); 
+	choose1BoatPosition(columnChoice, lineChoice); 
 	var direction; 
 	var size = boats[boatsPlaced];
 	boatsPlaced ++;
+	if (boatsPlaced ==1){
+		getHTMLCollectionelements(); 
+	}
 	if (id("verticalCheckbox").checked){
 		direction = 0; 
 	}
@@ -469,8 +508,8 @@ id("next").addEventListener("click", function(){
 	else {
 		direction = 2; 
 	}
-	var column = parseInt(columnTarget); 
-	var line = parseInt(lineTarget);
+	var column = parseInt(columnChoice); 
+	var line = parseInt(lineChoice);
 	updatePlaceBoard(column, line, direction, size);
 	console.log("next event");
 	createMoovingDiv(1);
@@ -520,14 +559,17 @@ function choose1BoatPosition(column, line){
 		data = JSON.stringify(data)
 		console.log("choose boats")
 		webSocket.send(data);
-		id("columnInput").value = ""; 
-		id("lineInput").value = "";
+//		id("columnInput").value = ""; 
+//		id("lineInput").value = "";
 	}
 	//id("columnChoiceInput").value = "";
 	//id("lineChoiceInput").value = "";
 	//id("verticalCheckbox").prop('checked', false);
 	//id("horizontalCheckbox").prop('checked', false);
 }
+
+
+
 
 
 

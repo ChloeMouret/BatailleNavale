@@ -51,20 +51,22 @@
 						Vous devez trouver les bateaux de votre adversaire. Sur quelle case voulez-vous tirer ? 
 					</p>
 				</div>
-				<div>
-					<div style="display : flex; flex-direction : row; width : 50%; margin : 0 auto; text-align : center">
-						<div id="column" style="width:50%">
-							<p style="font-size : 21px"> Colonne : </p>
-							<input id="columnInput"/>
-						</div>
-						<div id="line" style="width:50%">
-							<p style="font-size : 21px"> Ligne : </p>
-							<input id="lineInput" type="text"/>
-						</div>
-					</div>
-				</div>
+<!-- 				<div> -->
+<!-- 					<div style="display : flex; flex-direction : row; width : 50%; margin : 0 auto; text-align : center"> -->
+<!-- 						<div id="column" style="width:50%"> -->
+<!-- 							<p style="font-size : 21px"> Colonne : </p> -->
+<!-- 							<input id="columnInput"/> -->
+<!-- 						</div> -->
+<!-- 						<div id="line" style="width:50%"> -->
+<!-- 							<p style="font-size : 21px"> Ligne : </p> -->
+<!-- 							<input id="lineInput" type="text"/> -->
+<!-- 						</div> -->
+<!-- 					</div> -->
+<!-- 				</div> -->
 				<div id="bouton" style="text-align : center ; margin-top : 25px; height : 50px; display : flex; justify-content : center">
-					<button id="validateButton" type="button" class="btn btn-outline-dark" style="display : none">Valider </button>
+					<button id="validateButton" type="button" class="btn btn-outline-dark">
+						Ce n'est pas ton tour
+					</button>
 				</div>
 				<div id="boardContainer" style="margin-top : 50px; margin-left: 250px; display : flex; flex-direction : horizontal">
 					<div id="leftBoard">

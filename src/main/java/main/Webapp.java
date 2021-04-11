@@ -72,7 +72,7 @@ public class Webapp {
     	String str = "";
     	int max = 9;
     	int min = 0; 
-    	for (int i=0; i<8; i++) {
+    	for (int i=0; i<3; i++) {
     		str = str + ((int) (Math.random()*(max - min)));
     	}
     	Integer id = Integer.parseInt(str);
