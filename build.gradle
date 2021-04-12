@@ -63,3 +63,14 @@ task stage(dependsOn: ['build', 'clean'])
 build.mustRunAfter clean
 stage.dependsOn(copyToLib)
 
+jar {
+    archiveBaseName = 'BN'
+    archiveVersion =  '0.0'
+    manifest {
+    attributes(
+      'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+      'Main-Class': 'main.Webapp'
+    )
+  }
+}
+
