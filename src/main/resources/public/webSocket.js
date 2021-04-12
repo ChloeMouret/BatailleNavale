@@ -35,6 +35,7 @@ webSocket.onmessage = function (msg) {
 	}
 	else if (json.type=="winner"){
 		$("#modalWinner").modal('show');
+		confetti.start();  
 	}
 	else if (json.type=="loser"){
 		$("#modalLoser").modal('show');
