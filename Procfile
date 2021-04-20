@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar build/libs/BN-0.0.jar
+web: java -Dserver.port=4567 -jar build/libs/BN-0.0.jar
