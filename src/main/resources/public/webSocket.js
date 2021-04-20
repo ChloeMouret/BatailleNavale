@@ -1,5 +1,5 @@
 //Establish the WebSocket connection and set up event handlers
-var host = location.origin.replace(/^http/, 'ws');
+var host = location.origin.replace(/^http/, 'ws')+"/socket";
 var webSocket = new WebSocket(host);
 console.log("Connecting websocket to "+host);
 var error = 0; 
