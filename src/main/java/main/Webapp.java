@@ -4,11 +4,15 @@ import static spark.Spark.init;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
 import static spark.Spark.webSocket;
+import static spark.Spark.port;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.jetty.websocket.api.Session;
 import org.json.JSONObject;
@@ -106,7 +110,7 @@ public class Webapp {
 	 * Allow to start the game
 	 */
     public static void playGame() {
-    	staticFileLocation("/public/"); //index.html is served at localhost:4567 (default port)
+    	staticFileLocation("/public/");
     	webSocket("/socket", GameWebSocketHandler.class);
     	post("/game", (req, res) -> {
     		System.out.println("in post");
@@ -160,6 +164,11 @@ public class Webapp {
 	 * main
 	 */
 	public static void main(String[] args) {
+		@Nullable String port = System.getProperty("server.port");
+		if (port == null)
+			throw new IllegalStateException();
+		int portNumber = Integer.parseInt(port);
+		port(portNumber);
 		playGame();
 	}
 }

@@ -1,5 +1,7 @@
 //Establish the WebSocket connection and set up event handlers
-var webSocket = new WebSocket("ws://localhost:4567/socket");
+var host = window.location.host
+var webSocket = new WebSocket("ws://"+host+"/socket");
+console.log("Connecting websocket to "+host);
 var error = 0; 
 		//"ws://" + location.hostname + ":" + location.port + "/chat/"
 webSocket.onmessage = function (msg) { 
