@@ -14,39 +14,66 @@
 		<link rel="stylesheet" href="style.css">	
 	</head>
 	<body>
-		<div id="container" style="display:block; width : auto; height : auto">
-			<div id='moovingDiv' style='display:flex; flex-direction : horizontal; width :100px'>
-				<div id='moovingCell' class='boat'></div>
-				<div class='boat'></div>
-			</div>
-		</div>
-		<div id="grid" class="grid" style="width: auto; margin-top:100px">
-			<div style='display:flex; flex-direction : horizontal; width :150px'> 
-				<div id ="row0" class="row" style="width :150px">
-					<div id = "id-0-0" class='cell'></div>
-					<div id = "id-1-0" class='cell'></div>
-					<div id = "id-2-0" class='cell'></div>
-				</div>
-				<div id ="row1" class="row" style="width :150px">
-					<div id = "id-0-1" class='cell'></div>
-					<div id = "id-1-1" class='cell'></div>
-					<div id = "id-2-1" class='cell'></div>
-				</div>
-				<div id ="row2" class="row" style="width :150px">
-					<div id = "id-0-2" class='cell'></div>
-					<div id = "id-1-2" class='cell'></div>
-					<div id = "id-2-2" class='cell'></div>
-				</div>
-			</div>
-		</div>
-		<div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px">
-			<input id="verticalCheckbox" type="checkbox" name="verticalCheckbox" style="width:auto" onclick="testVertical()">
-		    <label for="verticalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Vertical </label> 
+		<!-- Modal winner -->
+	    <div id="modalWinner" class="modal" data-keyboard="false" data-backdrop="static" style="margin-top : 220px">
+	        <div class="modal-dialog">
+	            <div class="modal-content">
+	                <div class="modal-header" style="display : flex; flex-direction :horizontal">
+	                	<h5 class='modal-title' style="margin : auto"> Vous avez gagné !! </h5>
+	                </div>
+	                <div class="container" id="home_buttons">
+				        <div class="row my-4">
+				            <div class="col-12">
+				                <button class="btn btn-success btn-lg btn-block" data-toggle="modal" data-target="#modalCreateGame">
+				                    Rejouer avec le même joueur
+				                </button>
+				            </div>
+				        </div>
+				        <div class="row my-4">
+				            <div class="col-12">
+				                <button class="btn btn-primary btn-lg btn-block" data-toggle="modal" data-target="#modalJoinGame">
+				                    Jouer une nouvelle partie
+				                </button>
+				            </div>
+				
+				        </div>
+				    </div>
+	            </div>
+	        </div>
 	    </div>
-	    <div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px">
-		    <input id="horizontalCheckbox" type="checkbox" name="horizontalCheckbox" style="width:auto" onclick="testHorizontal()">
-		    <label for="horizontalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Horizontal </label> 
-	    </div>
+<!-- 		<div id="container" style="display:block; width : auto; height : auto"> -->
+<!-- 			<div id='moovingDiv' style='display:flex; flex-direction : horizontal; width :100px'> -->
+<!-- 				<div id='moovingCell' class='boat'></div> -->
+<!-- 				<div class='boat'></div> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 		<div id="grid" class="grid" style="width: auto; margin-top:100px"> -->
+<!-- 			<div style='display:flex; flex-direction : horizontal; width :150px'>  -->
+<!-- 				<div id ="row0" class="row" style="width :150px"> -->
+<!-- 					<div id = "id-0-0" class='cell'></div> -->
+<!-- 					<div id = "id-1-0" class='cell'></div> -->
+<!-- 					<div id = "id-2-0" class='cell'></div> -->
+<!-- 				</div> -->
+<!-- 				<div id ="row1" class="row" style="width :150px"> -->
+<!-- 					<div id = "id-0-1" class='cell'></div> -->
+<!-- 					<div id = "id-1-1" class='cell'></div> -->
+<!-- 					<div id = "id-2-1" class='cell'></div> -->
+<!-- 				</div> -->
+<!-- 				<div id ="row2" class="row" style="width :150px"> -->
+<!-- 					<div id = "id-0-2" class='cell'></div> -->
+<!-- 					<div id = "id-1-2" class='cell'></div> -->
+<!-- 					<div id = "id-2-2" class='cell'></div> -->
+<!-- 				</div> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 		<div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px"> -->
+<!-- 			<input id="verticalCheckbox" type="checkbox" name="verticalCheckbox" style="width:auto" onclick="testVertical()"> -->
+<!-- 		    <label for="verticalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Vertical </label>  -->
+<!-- 	    </div> -->
+<!-- 	    <div style="display : flex; flex-direction : horizontal; height : 25px; margin-left : 50px"> -->
+<!-- 		    <input id="horizontalCheckbox" type="checkbox" name="horizontalCheckbox" style="width:auto" onclick="testHorizontal()"> -->
+<!-- 		    <label for="horizontalCheckbox" style="margin-left : 5px; font-size : 0.85rem"> Horizontal </label>  -->
+<!-- 	    </div> -->
 		<script src="test.js"></script>
 	</body>
 </html>
